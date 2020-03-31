@@ -22,5 +22,3 @@ if (!GET(url = url)$status_code==404){ ##Check if today's file exist
 
       data <- read_excel(tf)
 }
-
- 
