@@ -107,13 +107,13 @@ source(paste0(getwd(),"/DataTotals.R"))
 
 #### Settings
 
-
+output_dir <- "C:/Users/Martin_Sliva/Documents/R/_outputs"
 
 
 selected_day <- nth(unique(data$DateRep),1)
 a_week_ago <- nth(unique(data$DateRep),7)
 
-mainDir<-paste0(getwd(), "/pictures/")
+mainDir<-paste0(output_dir, "/pictures")
 subDir <- as.character(selected_day)
 
 dir.create(file.path(mainDir, subDir))
@@ -142,7 +142,8 @@ p <- ggplot(data = data_country)+aes(x=DateRep, y=Cases, fill= Cases) +
            labs( title = paste0("COVID-19 Cases by day, ",selected_country, "    ", selected_day), 
                  caption = "Data source: https://www.ecdc.europa.eu. Created in R, gglot2. Martin Slíva, cc") +
            scale_fill_continuous(type = "viridis") +
-           theme(legend.position = "none", axis.title.x = element_blank(), axis.title.y = element_blank()) +
+           theme(legend.position = "none", axis.title.x = element_blank(), axis.title.y = element_blank()) 
+      
   
  
 print(p)
@@ -164,6 +165,8 @@ p <- ggplot() +
      coord_flip()+ theme(legend.position="none") + 
      labs(title = paste0("COVID-19 Top 10 Cases for ", selected_day),
           caption = "Data source: https://www.ecdc.europa.eu. Created in R, gglot2. Martin Slíva, cc")
+    
+
 
 
 print(p)
