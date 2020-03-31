@@ -60,7 +60,7 @@ data_top_ten_deaths <- function(data, selected_day, number=10){
 
 WorldData <- map_data('world') %>% filter(region != "Antarctica")
 
-
+ 
 setwd("C:/Users/Martin_Sliva/Documents/R/Covid-19/")
 
 data_download = TRUE

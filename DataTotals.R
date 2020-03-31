@@ -27,3 +27,4 @@ for (country_to_process in countries_to_process) {
 }
 
 data_totals <- left_join(data, country_totals, by = c('Countries','DateRep'))
+
