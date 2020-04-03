@@ -54,6 +54,34 @@ data_top_ten_deaths <- function(data, selected_day, number=10){
 }
 
 
+print_and_save_map <- function(data_to_display, for_day, chart_title, chart_subtitle ="", chart_save_name){
+      ###  data_to display should have two collumns Countries and Values
+      ###  
+  
+  
+      p <- ggplot() +
+           geom_map(data = WorldData, map = WorldData,
+                    aes(x = long, y = lat, group = group, map_id=region),
+                    fill = "white", colour = "#7f7f7f", size=0.5) +
+           geom_map(data = data_to_display, map = WorldData,
+                    aes(fill=Values , map_id=Countries)) +
+           scale_fill_viridis_c(option = "B", direction = -1, name="") + 
+           labs(title=paste(chart_title ,for_day), 
+                   caption = "Data source: https://www.ecdc.europa.eu.Created in R, gglot2. Martin Slíva, cc", 
+                   subtitle = chart_subtitle,
+                   x="", y="" ) +
+           theme(axis.text.x = element_blank(),
+                   axis.ticks.x = element_blank(),
+                   axis.text.y = element_blank(),
+                   axis.ticks.y = element_blank())
+
+           print(p)
+
+
+           ggsave(paste0(chart_save_name, for_day,".png"), width = map_width, height = map_height, units = "mm")
+
+
+}
 
 
 ####### LOAD OR UPDATE DATA
@@ -86,9 +114,11 @@ if (data_download) {
       problematic_countries<-countries[(!countries %in% unique(WorldData$region))]
 
       country_new_name<-c("Antigua", "British Virgin Islands","Brunei", "Cases on an international conveyance Japan", 
-                    "Republic of Congo", "Ivory Coast", "Curacao", "Swaziland", "Gibraltar", "Guinea-Bissau","Vatican", 
+                    "Republic of Congo", "Ivory Coast", "Curacao", "Swaziland", "Falkland Islands", "Gibraltar", "Guinea-Bissau","Vatican", 
                      "Macedonia", "Nevis", "Grenadines", "Timor-Leste",  
                     "Trinidad", "Turks and Caicos Islands", "UK", "Tanzania", "USA", "Virgin Islands" ) 
+      
+      if(!length(problematic_countries)==length(country_new_name)){ stop("Problem with names of countries (again :-( )!")}
 
       for (i in 1:length(problematic_countries)){
               data[data$Countries==problematic_countries[i], ]$Countries <- country_new_name[i]
@@ -101,7 +131,7 @@ if (data_download) {
 
 }
 
-
+### Sums Cases and deaths and creates data_totals tibble
 source(paste0(getwd(),"/DataTotals.R"))
 
 
@@ -128,9 +158,11 @@ map_width <- 2*scale_height
 map_height <- scale_height
 
 
+### Data for given Czech republic
 
-### Data for given country
- 
+
+
+
 selected_country<-"Czech Republic"
 
 
@@ -138,18 +170,19 @@ data_country<-data[data$Countries==selected_country & !data$Cases==0, ]
 
 
 p <- ggplot(data = data_country)+aes(x=DateRep, y=Cases, fill= Cases) +
-           geom_col()  +  
-           labs( title = paste0("COVID-19 Cases by day, ",selected_country, "    ", selected_day), 
-                 caption = "Data source: https://www.ecdc.europa.eu. Created in R, gglot2. Martin Slíva, cc") +
-           scale_fill_continuous(type = "viridis") +
-           theme(legend.position = "none", axis.title.x = element_blank(), axis.title.y = element_blank()) 
-      
-  
- 
+  geom_col()  +  
+  labs( title = paste0("COVID-19 Cases by day, ",selected_country, "    ", selected_day), 
+        caption = "Data source: https://www.ecdc.europa.eu. Created in R, gglot2. Martin Slíva, cc") +
+  scale_fill_continuous(type = "viridis") +
+  theme(legend.position = "none", axis.title.x = element_blank(), axis.title.y = element_blank()) 
+
+
+
 print(p)
 
 
 ggsave(paste0(selected_country, selected_day,".png"), width = chart_width, height = chart_heigth, units = "mm")
+
 
 
 
@@ -173,6 +206,37 @@ print(p)
 
 
 ggsave(paste0("Top_Cases_", selected_day,".png"), width = chart_width, height = chart_heigth, units = "mm")
+
+
+
+
+
+
+### Charts for countrie in top 10 cases
+
+for (i in data_for_chart$Countries){
+
+
+      selected_country<-i
+
+
+      data_country<-data[data$Countries==selected_country & !data$Cases==0, ]
+
+
+      p <- ggplot(data = data_country)+aes(x=DateRep, y=Cases, fill= Cases) +
+              geom_col()  +  
+              labs( title = paste0("COVID-19 Cases by day, ",selected_country, "    ", selected_day), 
+                    caption = "Data source: https://www.ecdc.europa.eu. Created in R, gglot2. Martin Slíva, cc") +
+              scale_fill_continuous(type = "viridis") +
+              theme(legend.position = "none", axis.title.x = element_blank(), axis.title.y = element_blank()) 
+
+
+      print(p)
+
+      ggsave(paste0(selected_country, selected_day,".png"), width = chart_width, height = chart_heigth, units = "mm")
+
+
+}
 
 
 
@@ -201,39 +265,43 @@ print(p)
 ggsave(paste0("Top_Deaths_", selected_day,".png"), width = chart_width, height = chart_heigth, units = "mm")
 
 
-
-
+###      ###
+### Maps ###
+###      ###
 
 ###### Cases for today
 
 
-data_for_map <- data %>% 
+# data_for_map <- data %>% 
       
-      filter(DateRep==selected_day) %>% filter(!(Cases == 0))
+  #    filter(DateRep==selected_day) %>% filter(!(Cases == 0))
 
 
+data_to_show<- data_totals %>% filter(DateRep==selected_day) %>% filter(!(Cases == 0)) %>% mutate(Values = log10(Cases)) %>% select(Countries, Values)
+
+print_and_save_map(data_to_show, selected_day, "COVID-19 Cases for day", "", chart_save_name = "Cases_")
 
 
-p <- ggplot() +
-        geom_map(data = WorldData, map = WorldData,
-               aes(x = long, y = lat, group = group, map_id=region),
-               fill = "white", colour = "#7f7f7f", size=0.5) +
-        geom_map(data = data_for_map, map = WorldData,
-               aes(fill=log10(Cases), map_id=Countries)) +
-       scale_fill_viridis_c(option = "B", direction = -1, name="") + 
-       labs(title=paste0("COVID-19 Cases for day ", selected_day), 
-               caption = "Data source: https://www.ecdc.europa.eu. Created in R, gglot2. Martin Slíva, cc",
-               x="", y="") +
-       theme(axis.text.x = element_blank(),
-              axis.ticks.x = element_blank(),
-              axis.text.y = element_blank(),
-              axis.ticks.y = element_blank())
+# p <- ggplot() +
+#        geom_map(data = WorldData, map = WorldData,
+#               aes(x = long, y = lat, group = group, map_id=region),
+#               fill = "white", colour = "#7f7f7f", size=0.5) +
+#        geom_map(data = data_for_map, map = WorldData,
+#               aes(fill=log10(Cases), map_id=Countries)) +
+#       scale_fill_viridis_c(option = "B", direction = -1, name="") + 
+#       labs(title=paste0("COVID-19 Cases for day ", selected_day), 
+#               caption = "Data source: https://www.ecdc.europa.eu. Created in R, gglot2. Martin Slíva, cc",
+#               x="", y="") +
+#       theme(axis.text.x = element_blank(),
+#              axis.ticks.x = element_blank(),
+#              axis.text.y = element_blank(),
+#              axis.ticks.y = element_blank())
 
 
-print(p)
+# print(p)
       
 
-ggsave(paste0("Cases_", selected_day,".png"), width = map_width, height = map_height, units = "mm")
+# ggsave(paste0("Cases_", selected_day,".png"), width = map_width, height = map_height, units = "mm")
 
 
 ##########Average daily growth of cases

@@ -5,6 +5,7 @@ country_totals <- NULL
 
 countries_to_process <- unique(data$Countries)
 
+
 for (country_to_process in countries_to_process) {
 
       pokus<-data %>% filter(Countries == country_to_process) %>%  select(DateRep, Cases, Deaths) %>% arrange(DateRep)
