@@ -4,11 +4,10 @@ library(dplyr)
 library(plotly)
 library(maps)
 library(viridis)
-library(gganimate)
 library(ggthemes)
  
 
-#### FUNCTONS
+#### FUNCTIONS
 
 data_top_ten_cases <- function(data, selected_day, number=10){
       ### return  top ten states and their cases cfor given date
@@ -55,7 +54,7 @@ data_top_ten_deaths <- function(data, selected_day, number=10){
 
 
 print_and_save_map <- function(data_to_display, for_day, chart_title, chart_subtitle ="", chart_save_name){
-      ###  data_to display should have two collumns Countries and Values
+      ###  data_to_display should have two collumns Countries and Values
       ###  
   
   
@@ -89,7 +88,7 @@ print_and_save_map <- function(data_to_display, for_day, chart_title, chart_subt
 WorldData <- map_data('world') %>% filter(region != "Antarctica")
 
  
-setwd("C:/Users/Martin_Sliva/Documents/R/Covid-19/")
+setwd("C:/Users/Martin_Sliva/Documents/R/Covid-19/") ##working dir on my laptop
 
 data_download = TRUE
 
@@ -113,7 +112,7 @@ if (data_download) {
       ## country names which are not in WorldData region names (definition of maps)
       problematic_countries<-countries[(!countries %in% unique(WorldData$region))]
 
-      country_new_name<-c("Antigua", "British Virgin Islands","Brunei", "Cases on an international conveyance Japan", 
+      country_new_name<-c("Antigua", "Bonaire, Saint Eustatius and Saba", "British Virgin Islands","Brunei", "Cases on an international conveyance Japan", 
                     "Republic of Congo", "Ivory Coast", "Curacao", "Swaziland", "Falkland Islands", "Gibraltar", "Guinea-Bissau","Vatican", 
                      "Macedonia", "Nevis", "Grenadines", "Timor-Leste",  
                     "Trinidad", "Turks and Caicos Islands", "UK", "Tanzania", "USA", "Virgin Islands" ) 
@@ -131,25 +130,25 @@ if (data_download) {
 
 }
 
-### Sums Cases and deaths and creates data_totals tibble
+### Sums Cases and deaths and creates data_totals tibble - TO DO refactor to function 
 source(paste0(getwd(),"/DataTotals.R"))
 
 
 #### Settings
 
-output_dir <- "C:/Users/Martin_Sliva/Documents/R/_outputs"
+output_dir <- "C:/Users/Martin_Sliva/Documents/R/_outputs" # output dir, main
 
 
 selected_day <- nth(unique(data$DateRep),1)
 a_week_ago <- nth(unique(data$DateRep),7)
 
-mainDir<-paste0(output_dir, "/pictures")
-subDir <- as.character(selected_day)
+mainDir<-paste0(output_dir, "/pictures")  
+subDir <- as.character(selected_day)  
 
-dir.create(file.path(mainDir, subDir))
+dir.create(file.path(mainDir, subDir))    #creates dir for processed date
 setwd(file.path(mainDir, subDir))
 
-scale_height <- 180
+scale_height <- 180    #setting output files height
 
 chart_width <- 1.5* scale_height
 chart_heigth <- scale_height
@@ -158,8 +157,7 @@ map_width <- 2*scale_height
 map_height <- scale_height
 
 
-### Data for given Czech republic
-
+### Chart for Czech republic
 
 
 
@@ -272,36 +270,11 @@ ggsave(paste0("Top_Deaths_", selected_day,".png"), width = chart_width, height =
 ###### Cases for today
 
 
-# data_for_map <- data %>% 
-      
-  #    filter(DateRep==selected_day) %>% filter(!(Cases == 0))
-
-
-data_to_show<- data_totals %>% filter(DateRep==selected_day) %>% filter(!(Cases == 0)) %>% mutate(Values = log10(Cases)) %>% select(Countries, Values)
+data_to_show<- data_totals %>% filter(DateRep==selected_day) %>% filter(!(Cases == 0)) %>% 
+                               mutate(Values = log10(Cases)) %>% 
+                               select(Countries, Values)
 
 print_and_save_map(data_to_show, selected_day, "COVID-19 Cases for day", "", chart_save_name = "Cases_")
-
-
-# p <- ggplot() +
-#        geom_map(data = WorldData, map = WorldData,
-#               aes(x = long, y = lat, group = group, map_id=region),
-#               fill = "white", colour = "#7f7f7f", size=0.5) +
-#        geom_map(data = data_for_map, map = WorldData,
-#               aes(fill=log10(Cases), map_id=Countries)) +
-#       scale_fill_viridis_c(option = "B", direction = -1, name="") + 
-#       labs(title=paste0("COVID-19 Cases for day ", selected_day), 
-#               caption = "Data source: https://www.ecdc.europa.eu. Created in R, gglot2. Martin Slíva, cc",
-#               x="", y="") +
-#       theme(axis.text.x = element_blank(),
-#              axis.ticks.x = element_blank(),
-#              axis.text.y = element_blank(),
-#              axis.ticks.y = element_blank())
-
-
-# print(p)
-      
-
-# ggsave(paste0("Cases_", selected_day,".png"), width = map_width, height = map_height, units = "mm")
 
 
 ##########Average daily growth of cases
@@ -332,38 +305,17 @@ data_for_map_prep2 <- merge(data_for_map_prep1, data_week_ago, Countries =Countr
 
 data_for_map_prep2 <- data_for_map_prep2 %>% filter(!Weekly_Cases == 0)
 
-data_for_map_2 <- data_for_map_prep2 %>% mutate( Weekly_Growth = (Weekly_Cases/Cases)**(1/7)) %>% select(Countries, Weekly_Growth)
+data_for_map_2 <- data_for_map_prep2 %>% mutate( Values = 100*(Weekly_Cases/Cases)**(1/7)) %>% select(Countries, Values)
+
+
+print_and_save_map(data_for_map_2, for_day = selected_day,
+                   chart_title = "Average Daily Growth of Covid-19 Cases per Week (in %) to ",
+                   chart_save_name = "Average_Growth_Cases" )
 
 
 
 
-
-
-p <- ggplot() +
-         geom_map(data = WorldData, map = WorldData,
-            aes(x = long, y = lat, group = group, map_id=region),
-            fill = "white", colour = "#7f7f7f", size=0.5) +
-         geom_map(data = data_for_map_2, map = WorldData,
-            aes(fill=Weekly_Growth*100, map_id=Countries)) +
-         scale_fill_viridis_c(option = "B", direction = -1, name="") + 
-         labs(title=paste("Average Daily Growth of Covid-19 Cases per Week (in %) to ",selected_day), 
-              caption = "Data source: https://www.ecdc.europa.eu. Created in R, gglot2. Martin Slíva, cc",
-              x="", y="") +
-         theme(axis.text.x = element_blank(),
-              axis.ticks.x = element_blank(),
-              axis.text.y = element_blank(),
-              axis.ticks.y = element_blank())
-
-
-print(p)
-
-
-ggsave(paste0("Average_Growth_Cases", selected_day,".png"), width = map_width, height = map_height, units = "mm")
-
-
-
-
-###  Death rate 
+###  Dataset preparation
 
 data_for_map_3 <- data %>% 
               group_by(Countries) %>%
@@ -378,98 +330,59 @@ data_for_map_3 <- data %>%
               filter(Total_Cases > 25 )
 
 
-###
+### Death Rate
 
-p <- ggplot() +
-        geom_map(data = WorldData, map = WorldData,
-             aes(x = long, y = lat, group = group, map_id=region),
-             fill = "white", colour = "#7f7f7f", size=0.5) +
-        geom_map(data = data_for_map_3, map = WorldData,
-             aes(fill=Death_Rate*100 , map_id=Countries)) +
-       scale_fill_viridis_c(option = "B", direction = -1, name="") + 
-       labs(title=paste("COVID-19 Death Rate (in %) to ",selected_day), 
-             caption = "Data source: https://www.ecdc.europa.eu.Created in R, gglot2. Martin Slíva, cc", 
-             subtitle = "Countries with more than 25 cases.",
-             x="", y="" ) +
-       theme(axis.text.x = element_blank(),
-             axis.ticks.x = element_blank(),
-             axis.text.y = element_blank(),
-             axis.ticks.y = element_blank())
 
-print(p)
+data_for_chart <- data_for_map_3 %>% mutate(Values = 100*Death_Rate) %>% select(Countries, Values)
 
-ggsave(paste0("Death_rate", selected_day,".png"), width = map_width, height = map_height, units = "mm")
+print_and_save_map(data_for_chart, selected_day, 
+                   chart_title = "COVID-19 Death Rate (in %) to ", 
+                   chart_subtitle = "Countries with more than 25 cases.",
+                   chart_save_name = "Death_rate")
 
 
 ### Cases per population
 
-p <- ggplot() +
-        geom_map(data = WorldData, map = WorldData,
-             aes(x = long, y = lat, group = group, map_id=region),
-             fill = "white", colour = "#7f7f7f", size=0.5) +
-        geom_map(data = data_for_map_3, map = WorldData,
-             aes(fill=log(Cases_per_pop,10) , map_id=Countries)) +
-        scale_fill_viridis_c(option = "B", direction = -1, name="") + 
-        labs(title=paste("COVID-19 Cases per Population (log10 scale) to ",selected_day), 
-             caption = "Data source: https://www.ecdc.europa.eu.Created in R, gglot2. Martin Slíva, cc", 
-             subtitle = "Countries with more than 25 cases.",
-             x="", y="" ) +
-        theme(axis.text.x = element_blank(),
-            axis.ticks.x = element_blank(),
-            axis.text.y = element_blank(),
-            axis.ticks.y = element_blank())
 
-print(p)
+data_for_chart <- data_for_map_3 %>% mutate(Values = log10(Cases_per_pop)) %>% select(Countries, Values)
 
-
-ggsave(paste0("Cases_per_population", selected_day,".png"), width = map_width, height = map_height, units = "mm")
+print_and_save_map(data_for_chart, selected_day, 
+                   chart_title = "COVID-19 Cases per Population (log10 scale) ", 
+                   chart_subtitle = "Countries with more than 25 cases.",
+                   chart_save_name = "Cases_per_population")
 
 
 
 ###  Death per population
- 
-p <- ggplot() +
-        geom_map(data = WorldData, map = WorldData,
-             aes(x = long, y = lat, group = group, map_id=region),
-             fill = "white", colour = "#7f7f7f", size=0.5) +
-       geom_map(data = data_for_map_3, map = WorldData,
-             aes(fill=log(Death_per_pop, 10) , map_id=Countries)) +
-       scale_fill_viridis_c(option = "B", direction = -1, name="") + 
-       labs(title=paste("COVID-19 Death per Population (log10 scale) to ",selected_day), 
-             caption = "Data source: https://www.ecdc.europa.eu.Created in R, gglot2. Martin Slíva, cc", 
-             subtitle = "Countries with more than 25 cases.",
-             x="", y="" ) +
-       theme(axis.text.x = element_blank(),
-             axis.ticks.x = element_blank(),
-             axis.text.y = element_blank(),
-             axis.ticks.y = element_blank())
-
-print(p)
 
 
-ggsave(paste0("Death_per_population", selected_day,".png"), width = map_width, height = map_height, units = "mm")
+data_for_chart <- data_for_map_3 %>% mutate(Values = log10(Death_per_pop)) %>% select(Countries, Values)
+
+print_and_save_map(data_for_chart, selected_day, 
+                   chart_title = "COVID-19 Death per Population (log10 scale) ", 
+                   chart_subtitle = "Countries with more than 25 cases.",
+                   chart_save_name = "Death_per_population")
+
 
 
 #### Total Cases
 
-data_for_map_4<- data_totals %>% filter(DateRep == selected_day) %>% filter(!(TotalCases == 0))
+data_for_chart <- data_totals %>% filter(DateRep == selected_day) %>% filter(!(TotalCases == 0)) %>%
+                                  mutate(Values = log10(TotalCases)) %>%
+                                  select(Countries, Values)
 
-p <- ggplot() +
-      geom_map(data = WorldData, map = WorldData,
-               aes(x = long, y = lat, group = group, map_id=region),
-               fill = "white", colour = "#7f7f7f", size=0.5) +
-      geom_map(data = data_for_map_4, map = WorldData,
-               aes(fill=log(TotalCases, 10) , map_id=Countries)) +
-      scale_fill_viridis_c(option = "B", direction = -1, name="") + 
-      labs(title=paste("COVID-19 Total Cases (log10 scale) to ",selected_day), 
-            caption = "Data source: https://www.ecdc.europa.eu.Created in R, gglot2. Martin Slíva, cc", 
-            x="", y="" ) +
-      theme(axis.text.x = element_blank(),
-            axis.ticks.x = element_blank(),
-            axis.text.y = element_blank(),
-            axis.ticks.y = element_blank())
-
-print(p)
+print_and_save_map(data_for_chart, selected_day, 
+                   chart_title = "COVID-19 Total Cases (log10 scale) to ", 
+                   chart_save_name = "Total_cases")
 
 
+### Total Death
+
+data_for_chart <- data_totals %>% filter(DateRep == selected_day) %>% filter(!(TotalDeath == 0)) %>%
+                                  mutate(Values = log10(TotalDeath)) %>%
+                                  select(Countries, Values)
+
+print_and_save_map(data_for_chart, selected_day, 
+                   chart_title = "COVID-19 Total Deaths (log10 scale) to ", 
+                   chart_save_name = "Total_Deaths")
 
