@@ -313,6 +313,34 @@ print_and_save_map(data_for_map_2, for_day = selected_day,
                    chart_save_name = "Average_Growth_Cases" )
 
 
+### Top ten growth ##
+
+pom <- data_for_map_2 %>% arrange(desc(Values))
+
+top_ten_growth <- pom[1:10,]
+
+top_ten_growth$Countries <- factor(top_ten_growth$Countries,    # Factor levels in increasing order
+                                        levels = top_ten_growth$Countries[order(top_ten_growth$Values)])
+
+##
+
+
+
+p <- ggplot() + 
+          geom_col(data = top_ten_growth, aes( x=Countries, y=Values, fill=Countries)) + 
+          coord_flip()+ theme(legend.position="none") + 
+          labs(title = paste0("COVID-19 Top 10 Average Weekly Growth in % for ", selected_day),
+                   caption = "Data source: https://www.ecdc.europa.eu. Created in R, gglot2. Martin Slíva, cc")
+
+
+print(p)
+
+
+ggsave(paste0("Top_Growth_", selected_day,".png"), width = chart_width, height = chart_heigth, units = "mm")
+
+
+###
+
 
 
 ###  Dataset preparation
