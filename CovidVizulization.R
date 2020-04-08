@@ -97,37 +97,10 @@ if (data_download) {
       source(paste0(getwd(),"/ReadCovidData.R")) 
   
       source(paste0(getwd(),"/ReadCountryData.R"))  
-
-      #### BASIC DATA CLEANING 
-
-      names(data)[7]<-"Countries"
-
-
-      ## Removing "_" from country names
-      data$Countries <- gsub("_", " ", data$Countries)
-
-
-      countries <- unique(data$Countries)
-
-      ## country names which are not in WorldData region names (definition of maps)
-      problematic_countries<-countries[(!countries %in% unique(WorldData$region))]
-
-      country_new_name<-c("Antigua", "Bonaire, Saint Eustatius and Saba", "British Virgin Islands","Brunei", "Cases on an international conveyance Japan", 
-                    "Republic of Congo", "Ivory Coast", "Curacao", "Swaziland", "Falkland Islands", "Gibraltar", "Guinea-Bissau","Vatican", 
-                     "Macedonia", "Nevis", "Grenadines", "Timor-Leste",  
-                    "Trinidad", "Turks and Caicos Islands", "UK", "Tanzania", "USA", "Virgin Islands" ) 
-      
-      if(!length(problematic_countries)==length(country_new_name)){ stop("Problem with names of countries (again :-( )!")}
-
-      for (i in 1:length(problematic_countries)){
-              data[data$Countries==problematic_countries[i], ]$Countries <- country_new_name[i]
-      }
-      
-      names(data)[1] <- "DateRep"
-      names(data)[5] <- "Cases"
-      names(data)[6] <- "Deaths"
-      names(data)[10] <- "Popul"
-
+       
+      source("DataCleaning.R")
+  
+  
 }
 
 ### Sums Cases and deaths and creates data_totals tibble - TO DO refactor to function 
