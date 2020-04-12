@@ -387,3 +387,8 @@ print_and_save_map(data_for_chart, selected_day,
                    chart_title = "COVID-19 Total Deaths (log10 scale) to ", 
                    chart_save_name = "Total_Deaths")
 
+
+
+####
+
+source("C:/Users/Martin_Sliva/Documents/R/Covid-19/WeeklyGrowth.R", encoding = "UTF-8")

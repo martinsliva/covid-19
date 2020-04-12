@@ -33,8 +33,22 @@ names(data)[10] <- "Popul"
 
 data[which(data$Cases<0),]$Cases <- 0
 
+
+
+popul <- population %>% group_by(country) %>% summarise( pop=max(population))
+country_without_popul_data <- unique(subset(data_totals, is.na(data_totals$Popul))$Countries)
+
+for (i in country_without_popul_data) {
+      
+      if (!sum(popul$country== i)==0){
+            data_totals[data_totals$Countries == i,]$Popul <- popul[popul$country== i,]$pop
+      }
+}
+
+
+
 ### cleaning no longer needed variables
 
-rm(list=c("countries", "problematic_countries", "i" , "enum_problematic_countries"))
+rm(list=c("countries", "problematic_countries", "i" , "enum_problematic_countries", "popul", "country_without_popul_data"))
 
 
