@@ -156,6 +156,35 @@ ggsave(paste0(selected_country, selected_day,".png"), width = chart_width, heigh
 
 
 
+### Chart for France
+
+
+
+selected_country<-"France"
+
+
+data_country<-data[data$Countries==selected_country & !data$Cases==0, ]
+
+
+p <- ggplot(data = data_country)+aes(x=DateRep, y=Cases, fill= Cases) +
+  geom_col()  +  
+  labs( title = paste0("COVID-19 Cases by day, ",selected_country, "    ", selected_day), 
+        caption = "Data source: https://www.ecdc.europa.eu. Created in R, gglot2. Martin Slíva, cc") +
+  scale_fill_continuous(type = "viridis") +
+  theme(legend.position = "none", axis.title.x = element_blank(), axis.title.y = element_blank()) 
+
+
+
+print(p)
+
+
+ggsave(paste0(selected_country, selected_day,".png"), width = chart_width, height = chart_heigth, units = "mm")
+
+
+
+
+
+
 
 #### top 10 Cases for the day
 
